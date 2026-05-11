@@ -23,10 +23,13 @@
 """
 from __future__ import annotations
 
+import logging
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
 from .storage import GenomeStore
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -87,8 +90,18 @@ class EvolutionAnalytics:
 
 
 def compute_analytics(store: GenomeStore, limit: int = 100) -> EvolutionAnalytics:
-    """Compute analytics from the evaluation history in the store."""
+    """Compute analytics from the evaluation history in the store.
+
+    :param store: GenomeStore with evaluation history
+    :param limit: max records to analyze
+    :raises TypeError: if store is None
+    """
+    if store is None:
+        raise TypeError("store must not be None")
+    if not isinstance(limit, int) or limit <= 0:
+        raise ValueError(f"limit must be positive int, got {limit}")
     records = store.recent_evaluations(limit)
+    logger.debug("compute_analytics: %d records loaded (limit=%d)", len(records), limit)
 
     if not records:
         return EvolutionAnalytics(
@@ -243,7 +256,14 @@ def suggest_dimensions(
     This is the Strange Loop core: the system proposes new evaluation criteria
     based on what it consistently fails at, creating a self-referential improvement
     loop where the evaluation standard itself evolves.
+
+    :param store: GenomeStore with evaluation history
+    :param analytics: pre-computed analytics (computed if None)
+    :param limit: max evaluations to analyze
+    :raises TypeError: if store is None
     """
+    if store is None:
+        raise TypeError("store must not be None")
     if analytics is None:
         analytics = compute_analytics(store, limit=limit)
 
