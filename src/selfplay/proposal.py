@@ -78,9 +78,9 @@ class ProposalStore:
             return []
 
     def _save(self, proposals: list[dict[str, Any]]) -> None:
-        self.path.write_text(
-            json.dumps(proposals, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
+        with open(self.path, "w", encoding="utf-8") as f:
+            json.dump(proposals, f, ensure_ascii=False, indent=2)
+            f.flush()
 
     def submit(self, proposal: DimensionProposal) -> str:
         """Submit a new proposal. Returns the proposal id."""

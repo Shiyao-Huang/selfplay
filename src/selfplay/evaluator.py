@@ -79,6 +79,8 @@ class HeuristicEvaluator:
         return self.evaluate_text(task, output)
 
     def evaluate_text(self, task: str, output: str) -> EvalResult:
+        if not isinstance(output, str):
+            raise TypeError(f"output must be str, got {type(output).__name__}")
         dims = self.dimensions if self.dimensions else DEFAULT_DIMENSIONS
         text = f"{task}\n{output}"
 

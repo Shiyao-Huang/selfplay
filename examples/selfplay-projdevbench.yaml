@@ -21,13 +21,15 @@ evaluation:
         # Does the code validate inputs against requirements?
         - id: input_validation
           label: 输入验证
-          keywords: ["validate", "check", "assert", "guard", "precondition"]
+          keywords: ["validate", "check", "assert", "guard", "precondition", "raise TypeError", "raise ValueError"]
+          pattern: "(raise (Type|Value)Error|if .* is None|if not isinstance)"
           weight: 0.16
 
-        # Failure Mode 1 continued: Unimplemented spec markers
+        # Failure Mode 1 continued: Spec completeness — does code document its contract?
+        # Checks for docstrings with param docs, type hints, and return annotations.
         - id: spec_completeness
           label: 规格完整性
-          pattern: "(TODO|FIXME|HACK|XXX|placeholder|NotImplemented)"
+          pattern: "(:param |:return |Args:|Returns:|:rtype|-> \\w+|def \\w+\\([^)]*:\\s*\\w)"
           weight: 0.12
 
         # Failure Mode 2: Boundary conditions

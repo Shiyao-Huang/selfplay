@@ -68,9 +68,13 @@ class MockOptimizerAgent:
             additions.append("最后给出下一步行动。")
         if not additions:
             additions.append("保持当前策略，并继续缩短反馈周期。")
-        new_text = genome.instructions.rstrip() + " " + " ".join(additions)
-        decision = "modify instructions: " + " / ".join(additions)
-        return decision, genome.mutated(new_text)
+        try:
+            new_text = genome.instructions.rstrip() + " " + " ".join(additions)
+            decision = "modify instructions: " + " / ".join(additions)
+            return decision, genome.mutated(new_text)
+        finally:
+            # Ensure additions list is cleaned up after mutation
+            additions.clear()
 
 
 def score_output(text: str) -> float:

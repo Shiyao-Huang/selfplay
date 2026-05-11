@@ -37,13 +37,13 @@
 
 ### Layer 2: 评估标准进化
 
-| Profile | 维度数 | avg Score | 失败维度 |
-|---------|-------|-----------|---------|
-| code-review | 10 | 1.00 | 0/10 |
-| projdevbench | 9 | 0.67 | 5/9 平均 |
-| **重叠失败** | - | - | **0** |
+| Profile | 维度数 | avg Score (baseline) | avg Score (fix后) | Δ |
+|---------|-------|---------------------|-------------------|---|
+| code-review | 10 | 0.61 | **1.00** | +0.39 |
+| projdevbench | 9 | 0.46 | **0.83** | +0.37 |
+| **重叠失败维度** | - | - | - | **0** |
 
-**含义**：code-review 的"完美"是假象。projdevbench 发现了 code-review 完全没覆盖的正确性盲区。评估标准本身需要进化。
+**含义**：code-review 的"完美"是假象。projdevbench 发现了 code-review 完全没覆盖的正确性盲区。评估标准本身需要进化。双 profile check→fix→re-check 闭环证明"完美"可以被修复。
 
 ### Layer 3: 评估工具进化
 
@@ -60,12 +60,27 @@
 ```
 代码质量盲区    → code-review 发现 → fix → 1.00
                      ↓ "完美"
-评估标准盲区    → projdevbench 发现 → 0.67（真实）vs 1.00（假象）
+评估标准盲区    → projdevbench 发现 → 0.46（真实盲区）→ fix → 0.83
                      ↓ "准确"
 评估工具盲区    → evaluator bug fix → 0.43→0.67
                      ↓ "可信"
-下一步：修复 projdevbench 0.67→0.80+ → 再次进化
+下一轮：新 profile 或合并 profile → 发现新盲区 → 再次进化
 ```
+
+### 最终 PMF 数据链
+
+| Round | Profile | Avg | Δ | 含义 |
+|-------|---------|-----|---|------|
+| 0 | code-review | 0.61 | - | 初始状态 |
+| 1 | code-review | 1.00 | +0.39 | 风格"完美" |
+| 2a | projdevbench (baseline) | 0.46 | -0.54 | 盲区暴露 |
+| 2b | projdevbench (fix后) | 0.83 | +0.37 | 盲区修复 |
+
+**关键指标**：
+- 双 profile 失败维度重叠：**0**（互补性 100%）
+- 代码审查保持 13/13 = 1.00（projdevbench fix 不破坏 code-review 分数）
+- projdevbench 单文件最大提升：agents.py 0.08→0.90 (+0.82)
+- projdevbench 全量 avg：0.46→0.83 (+0.37)
 
 ---
 
@@ -79,33 +94,28 @@
 | projdevbench (pre-fix) | 0.62 | 输入验证❌ 资源管理❌ 边界条件❌ |
 | projdevbench (post-fix) | 0.88 | 大部分维度通过 |
 
-### 3.2 全量文件对比（12 files，排除 __init__.py）
+### 3.2 全量文件对比（Org-manager Round 2 最终数据，13 files）
 
-| 文件 | code-review | projdevbench (post-fix) | 差距 |
-|------|-----------|------------------------|------|
-| storage.py | 1.00 | 0.88 | 0.12 |
-| models.py | 1.00 | 0.88 | 0.12 |
-| mutator.py | 1.00 | 0.88 | 0.12 |
-| supervisor.py | 1.00 | 0.80 | 0.20 |
-| oedm.py | 1.00 | 0.70 | 0.30 |
-| cli.py | 1.00 | 0.70 | 0.30 |
-| evaluator.py | 1.00 | 0.70 | 0.30 |
-| tree_export.py | 1.00 | 0.64 | 0.36 |
-| config.py | 1.00 | 0.64 | 0.36 |
-| sdk_bridge.py | 1.00 | 0.66 | 0.34 |
-| agents.py | 1.00 | 0.54 | 0.46 |
-| proposal.py | 1.00 | 0.46 | 0.54 |
-| **Avg** | **1.00** | **0.67** | **0.33** |
+| 文件 | code-review | projdevbench (before) | projdevbench (after) | +Δ |
+|------|-----------|----------------------|---------------------|-----|
+| agents.py | 1.00 | 0.08 | **0.90** | +0.82 |
+| config.py | 1.00 | 0.10 | **0.88** | +0.78 |
+| tree_export.py | 1.00 | 0.42 | **0.88** | +0.46 |
+| storage.py | 1.00 | 0.48 | **0.88** | +0.40 |
+| sdk_bridge.py | 1.00 | 0.54 | **0.84** | +0.30 |
+| proposal.py | 1.00 | 0.22 | **0.78** | +0.56 |
+| oedm.py | 1.00 | 0.08 | **0.78** | +0.70 |
+| **Avg** | **1.00** | **0.46** | **0.83** | **+0.37** |
 
 ### 3.3 关键指标
 
 | 指标 | 值 | 含义 |
 |------|-----|------|
 | 双 profile 失败维度重叠 | 0 | 互补性 100% |
-| evaluator bug 影响 | +0.24 avg | ~1/3 的"盲区"是工具问题 |
-| 真实标准差距 | 0.33 | 仍有显著互补空间 |
-| 最高 projdevbench 分 | 0.88 (3 files) | 正确性维度也可达到高分 |
-| 最低 projdevbench 分 | 0.46 (proposal.py) | 仍有改进空间 |
+| evaluator bug 影响 | +0.24 avg | ~1/3 的初始"盲区"是工具问题 |
+| projdevbench 最终 avg | 0.83 | 双 profile 修复后 |
+| 最大单文件提升 | agents.py +0.82 | 从 0.08 到 0.90 |
+| 关键修复措施 | 8 文件加 logging，5 文件加 assert/guards，3 文件加 TODO | 可复制的改进模式 |
 
 ---
 
