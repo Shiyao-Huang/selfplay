@@ -1,0 +1,78 @@
+runtime: mock
+threshold: 0.7
+database: data/selfplay-projdevbench.sqlite
+cycles: 1
+
+# ProjDevBench-inspired evaluation profile
+# Based on ICML 2026 research: 5 failure modes in AI-generated projects
+# Spec deviation (41%), boundary conditions, time complexity (14%),
+# resource management, engineering capability
+#
+# This profile tests for issues that standard code-review profiles miss:
+# it focuses on correctness guarantees, not code style.
+
+evaluation:
+  profiles:
+    projdevbench:
+      id: projdevbench
+      version: 2
+      dimensions:
+        # Failure Mode 1: Spec deviation (41% of failures)
+        # Does the code validate inputs against requirements?
+        - id: input_validation
+          label: 输入验证
+          keywords: ["validate", "check", "assert", "guard", "precondition"]
+          weight: 0.16
+
+        # Failure Mode 1 continued: Unimplemented spec markers
+        - id: spec_completeness
+          label: 规格完整性
+          pattern: "(TODO|FIXME|HACK|XXX|placeholder|NotImplemented)"
+          weight: 0.12
+
+        # Failure Mode 2: Boundary conditions
+        - id: boundary_checks
+          label: 边界条件检查
+          keywords: ["empty", "None", "null", "zero", "min", "max", "limit", "boundary"]
+          pattern: "(len\\(.*\\)\\s*(==|>|<|<=|>=)|if.*is None|if.*is not None|\\.get\\()"
+          weight: 0.14
+
+        # Failure Mode 3: Time complexity (14% of failures)
+        - id: complexity_awareness
+          label: 复杂度意识
+          keywords: ["O(n", "O(log", "O(1)", "complexity", "performance", "efficient", "cached"]
+          pattern: "(dict\\(|set\\(|defaultdict|lru_cache|@cache|break)"
+          weight: 0.12
+
+        # Failure Mode 4: Resource management
+        - id: resource_cleanup
+          label: 资源管理
+          keywords: ["with ", "close", "finally", "cleanup", "dispose", "contextmanager"]
+          pattern: "(with open|async with|try.*finally)"
+          weight: 0.10
+
+        # Failure Mode 5: Engineering — error propagation
+        - id: error_propagation
+          label: 错误传播
+          keywords: ["raise", "except", "Exception", "Error", "traceback"]
+          pattern: "(raise |except |raise_from|__cause__)"
+          weight: 0.10
+
+        # Failure Mode 5 continued: Observability
+        - id: observability
+          label: 可观测性
+          keywords: ["logging", "logger", "log.", "debug", "info"]
+          weight: 0.08
+
+        # Cross-cutting: Type safety prevents spec deviation
+        - id: type_guards
+          label: 类型防护
+          keywords: ["isinstance", "TypeError", "ValueError"]
+          pattern: "(isinstance\\(|typing\\.|TypeGuard)"
+          weight: 0.10
+
+        # Cross-cutting: Test evidence for boundary conditions
+        - id: test_evidence
+          label: 测试证据
+          keywords: ["test_", "assert", "mock", "pytest", "parametrize"]
+          weight: 0.08
