@@ -32,7 +32,7 @@
       "id": "R-004",
       "title": "Launch to global developer community",
       "layer": "R",
-      "status": "todo",
+      "status": "done",
       "session": null,
       "kind": "requirement",
       "expected": "GitHub repo + pip publish + Show HN + Chinese community launch"

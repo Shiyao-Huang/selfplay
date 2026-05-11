@@ -23,7 +23,7 @@ dependencies = []
 
 [project.optional-dependencies]
 tui = ["textual>=0.50.0"]
-sdk = ["httpx>=0.27.0"]
+sdk = ["httpx>=0.27.0", "anthropic>=0.30.0"]
 evaluation = ["pyyaml>=6.0"]
 dev = ["pytest>=7.0", "ruff>=0.1.0"]
 

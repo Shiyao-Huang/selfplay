@@ -10,6 +10,7 @@ from typing import Any
 from . import __version__
 from .analytics import compute_analytics, suggest_dimensions
 from .config import SelfPlayConfig
+from .evaluator import HeuristicEvaluator
 from .proposal import DimensionProposal, ProposalStore
 from .storage import GenomeStore
 from .supervisor import OEDMSupervisor
@@ -250,6 +251,10 @@ def build_parser() -> argparse.ArgumentParser:
     analytics = sub.add_parser("analytics", help="show evolution analytics and metrics")
     analytics.add_argument("--limit", type=int, default=50, help="number of evaluations to analyze")
     analytics.add_argument("--json", action="store_true", help="print machine-readable JSON")
+    check = sub.add_parser("check", help="evaluate a source file using configured dimensions")
+    check.add_argument("file", help="path to source file to evaluate")
+    check.add_argument("--profile", default=None, help="evaluation profile id from config")
+    check.add_argument("--json", action="store_true", help="print machine-readable JSON")
     suggest = sub.add_parser("suggest-dimensions", help="auto-suggest new evaluation dimensions (Strange Loop)")
     suggest.add_argument("--limit", type=int, default=50, help="evaluations to analyze")
     suggest.add_argument("--auto-submit", action="store_true", help="auto-submit suggestions as proposals")
@@ -438,6 +443,43 @@ async def run_async(args: argparse.Namespace) -> None:
                 print(f"     {s['rationale'][:120]}")
             if args.auto_submit and suggestions:
                 print(color(f"  {len(suggestions)} proposals auto-submitted", "green", use_color))
+        return
+    if args.cmd == "check":
+        file_path = Path(args.file)
+        if not file_path.exists():
+            print(color(f"File not found: {args.file}", "red", use_color))
+            return
+        content = file_path.read_text(encoding="utf-8")
+        profile = config.resolve_profile(args.runtime) if config.profiles else None
+        dims = profile.resolve_dimensions(config.dimensions) if profile else config.dimensions
+        evaluator = HeuristicEvaluator(dimensions=dims or None)
+        eval_result = evaluator.evaluate_text(task=f"code review: {file_path.name}", output=content)
+        if args.json:
+            payload = {
+                "file": str(file_path),
+                "score": eval_result.score,
+                "features": [f.to_dict() for f in eval_result.features],
+                "strengths": eval_result.strengths,
+                "weaknesses": eval_result.weaknesses,
+            }
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+        else:
+            print(color(f"SelfPlay code review: {file_path.name}", "cyan", use_color))
+            bar = score_bar(eval_result.score)
+            if use_color:
+                bar = color(bar, "green" if eval_result.score >= 0.7 else "yellow" if eval_result.score >= 0.4 else "red", True)
+            print(f"  Score: {eval_result.score:.2f}  {bar}")
+            print()
+            for f in eval_result.features:
+                icon = "✅" if f.passed else "❌"
+                w = f"({f.effective_weight:.0%})"
+                ev = f" — {f.evidence}" if f.evidence else ""
+                print(f"  {icon} {f.label} {w}{ev}")
+            if eval_result.weaknesses:
+                print()
+                print(color("Weaknesses:", "yellow", use_color))
+                for w in eval_result.weaknesses:
+                    print(f"  • {w}")
         return
 
     supervisor = OEDMSupervisor(

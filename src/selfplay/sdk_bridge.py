@@ -180,6 +180,54 @@ class ClaudeRuntimeAdapter:
 
 
 @dataclass
+class AnthropicRuntimeAdapter:
+    """Real LLM adapter using the official anthropic Python SDK."""
+
+    name: str = "claude"
+    model: str = "claude-sonnet-4-20250514"
+    max_tokens: int = 1024
+
+    async def run(self, image: AgentImage, goal: str) -> AsyncIterator[RuntimeEvent]:
+        try:
+            import anthropic  # type: ignore
+        except ImportError as exc:
+            yield RuntimeEvent(
+                "error",
+                f"anthropic package not installed: {exc}. "
+                "Install with: pip install anthropic",
+                self.name,
+            )
+            return
+
+        yield RuntimeEvent("thread.started", "anthropic query", self.name, {"image_id": image.id})
+        yield RuntimeEvent("turn.started", goal, self.name, {"model": self.model})
+
+        try:
+            client = anthropic.AsyncAnthropic()
+            response = await client.messages.create(
+                model=self.model,
+                max_tokens=self.max_tokens,
+                system=image.prompt,
+                messages=[{"role": "user", "content": goal}],
+            )
+            text_parts = [
+                block.text for block in response.content if hasattr(block, "text")
+            ]
+            output = "\n".join(text_parts)
+            yield RuntimeEvent("message", output, self.name, {
+                "model": response.model,
+                "usage": {"input_tokens": response.usage.input_tokens, "output_tokens": response.usage.output_tokens},
+            })
+            yield RuntimeEvent("usage", str(response.usage), self.name, {"usage": {
+                "input_tokens": response.usage.input_tokens,
+                "output_tokens": response.usage.output_tokens,
+            }})
+            yield RuntimeEvent("turn.completed", "ok", self.name)
+        except Exception as exc:
+            yield RuntimeEvent("error", f"Anthropic API call failed: {exc}", self.name)
+
+
+@dataclass
 class CodexRuntimeAdapter:
     """Codex adapter 占位：Phase 0 不执行沙箱，仅保留统一接口。"""
 

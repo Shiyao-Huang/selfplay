@@ -16,6 +16,7 @@ from .models import (
 )
 from .mutator import Mutator, RuleBasedMutator
 from .sdk_bridge import (
+    AnthropicRuntimeAdapter,
     ClaudeRuntimeAdapter,
     CodexRuntimeAdapter,
     MockRuntimeAdapter,
@@ -52,7 +53,7 @@ class OEDMSupervisor:
     def __post_init__(self) -> None:
         self.runtime_adapters: dict[str, RuntimeAdapter] = {
             "mock": MockRuntimeAdapter(),
-            "claude": ClaudeRuntimeAdapter(),
+            "claude": AnthropicRuntimeAdapter(),
             "codex": CodexRuntimeAdapter(),
         }
         dims = self._resolve_dimensions()
