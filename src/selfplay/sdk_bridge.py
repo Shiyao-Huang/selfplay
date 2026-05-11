@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 import sys
 from dataclasses import dataclass, field
@@ -7,6 +8,8 @@ from pathlib import Path
 from typing import Any, AsyncIterator, Literal, Protocol
 
 from .models import AgentImage
+
+logger = logging.getLogger(__name__)
 
 EventKind = Literal[
     "thread.started", "turn.started", "tool.started", "tool.ended",
@@ -211,6 +214,8 @@ class AnthropicRuntimeAdapter:
         yield RuntimeEvent("turn.started", goal, self.name, {"model": self.model, "stream": self.stream})
 
         try:
+            if not isinstance(goal, str) or not goal.strip():
+                raise ValueError("goal must be a non-empty string")
             api_key = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")
             base_url = os.environ.get("ANTHROPIC_BASE_URL") or None
             client = anthropic.AsyncAnthropic(api_key=api_key, base_url=base_url)

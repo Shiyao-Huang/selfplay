@@ -23,12 +23,15 @@
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from .config import EvaluationDimension, EvaluationProfile
+
+logger = logging.getLogger(__name__)
 
 
 def utc_now() -> str:
@@ -68,7 +71,9 @@ class ProposalStore:
         if not self.path.exists():
             return []
         try:
-            return json.loads(self.path.read_text(encoding="utf-8"))
+            data = json.loads(self.path.read_text(encoding="utf-8"))
+            assert isinstance(data, list), f"Expected list, got {type(data).__name__}"
+            return data
         except (json.JSONDecodeError, OSError):
             return []
 

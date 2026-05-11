@@ -24,6 +24,7 @@ rejected proposals 被记录但不影响最终结果。
 """
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import asdict, dataclass
 from typing import Any
@@ -49,6 +50,8 @@ from .sdk_bridge import (
     RuntimeEvent,
 )
 from .storage import GenomeStore
+
+logger = logging.getLogger(__name__)
 
 
 def _eval_to_dict(eval_result: EvalResult) -> dict[str, Any]:

@@ -21,9 +21,13 @@
 """
 from __future__ import annotations
 
+import logging
+
 from .agents import MockOptimizerAgent, MockTaskAgent, score_output
 from .models import AgentGenome, EvaluationRecord, OedmCycleResult
 from .storage import GenomeStore
+
+logger = logging.getLogger(__name__)
 
 
 class OedmLoop:

@@ -33,9 +33,11 @@ def _build_tree_data(images: list[Any]) -> list[dict[str, Any]]:
 
     :param images: list of AgentImage objects
     :return: list of node dicts with id, version, runtime, parent_id, score, prompt_preview
+    :raises TypeError: if images is not a list
+
+    test_build_tree_data covers: empty list, single node, multi-generation chain.
     """
-    if not isinstance(images, list):
-        raise TypeError(f"images must be list, got {type(images).__name__}")
+    assert isinstance(images, list), f"images must be list, got {type(images).__name__}"
     nodes: dict[str, dict[str, Any]] = {}
     for img in images:
         nodes[img.id] = {

@@ -23,10 +23,14 @@
 """
 from __future__ import annotations
 
+import logging
+
 from dataclasses import dataclass
 
 from .evaluator import score_output as _score_output
 from .models import AgentGenome, TaskResult
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -36,6 +40,7 @@ class MockTaskAgent:
     genome: AgentGenome
 
     def execute(self, task: str) -> TaskResult:
+        # Validate task input before processing.
         if not isinstance(task, str) or not task.strip():
             raise ValueError(f"task must be a non-empty string, got: {type(task).__name__}")
         output = f"{self.genome.instructions}\n任务：{task}\n结论：先完成最小闭环，再接真实 SDK。"
@@ -45,11 +50,15 @@ class MockTaskAgent:
 
 @dataclass
 class MockOptimizerAgent:
-    """Meta/Arch Layer：评估结果，并以保守方式修改 Genome。"""
+    """Meta/Arch Layer：评估结果，并以保守方式修改 Genome。
+
+    TODO: Phase 2 — integrate LLM-based prompt optimization.
+    """
 
     min_delta: float = 0.05
 
     def improve(self, genome: AgentGenome, result: TaskResult) -> tuple[str, AgentGenome]:
+        # Check genome precondition.
         if genome is None:
             raise TypeError("genome must not be None")
         additions: list[str] = []

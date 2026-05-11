@@ -20,11 +20,15 @@
 """
 from __future__ import annotations
 
+import logging
+
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
 from .models import DEFAULT_MAX_PROMPT_LENGTH
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -126,7 +130,11 @@ class SelfPlayConfig:
 
 
 def _parse_dimensions(text: str) -> list[EvaluationDimension]:
-    """Parse evaluation.dimensions from YAML. Requires pyyaml optional dependency."""
+    """Parse evaluation.dimensions from YAML. Requires pyyaml optional dependency.
+
+    test_parse_dimensions verifies: empty string, valid dims, disabled dims, malformed YAML.
+    """
+    assert isinstance(text, str), f"text must be str, got {type(text).__name__}"
     try:
         import yaml
     except ImportError:
