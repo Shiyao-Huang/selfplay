@@ -1,0 +1,61 @@
+runtime: claude
+threshold: 0.85
+database: data/selfplay-claude-evolution.sqlite
+cycles: 3
+
+evaluation:
+  profiles:
+    projdevbench:
+      id: projdevbench
+      version: 2
+      dimensions:
+        - id: input_validation
+          label: 输入验证
+          keywords: ["validate", "check", "assert", "guard", "precondition", "raise TypeError", "raise ValueError"]
+          pattern: "(raise (Type|Value)Error|if .* is None|if not isinstance)"
+          weight: 0.16
+
+        - id: spec_completeness
+          label: 规格完整性
+          pattern: "(:param |:return |Args:|Returns:|:rtype|-> \\w+|def \\w+\\([^)]*:\\s*\\w)"
+          weight: 0.12
+
+        - id: boundary_checks
+          label: 边界条件检查
+          keywords: ["empty", "None", "null", "zero", "min", "max", "limit", "boundary"]
+          pattern: "(len\\(.*\\)\\s*(==|>|<|<=|>=)|if.*is None|if.*is not None|\\.get\\()"
+          weight: 0.14
+
+        - id: complexity_awareness
+          label: 复杂度意识
+          keywords: ["O(n", "O(log", "O(1)", "complexity", "performance", "efficient", "cached"]
+          pattern: "(dict\\(|set\\(|defaultdict|lru_cache|@cache|break)"
+          weight: 0.12
+
+        - id: resource_cleanup
+          label: 资源管理
+          keywords: ["with ", "close", "finally", "cleanup", "dispose", "contextmanager"]
+          pattern: "(with open|async with|try.*finally)"
+          weight: 0.10
+
+        - id: error_propagation
+          label: 错误传播
+          keywords: ["raise", "except", "Exception", "Error", "traceback"]
+          pattern: "(raise |except |raise_from|__cause__)"
+          weight: 0.10
+
+        - id: observability
+          label: 可观测性
+          keywords: ["logging", "logger", "log.", "debug", "info"]
+          weight: 0.08
+
+        - id: type_guards
+          label: 类型防护
+          keywords: ["isinstance", "TypeError", "ValueError"]
+          pattern: "(isinstance\\(|typing\\.|TypeGuard)"
+          weight: 0.10
+
+        - id: test_evidence
+          label: 测试证据
+          keywords: ["test_", "assert", "mock", "pytest", "parametrize"]
+          weight: 0.08
