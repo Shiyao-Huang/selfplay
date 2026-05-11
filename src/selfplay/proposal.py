@@ -79,6 +79,8 @@ class ProposalStore:
 
     def submit(self, proposal: DimensionProposal) -> str:
         """Submit a new proposal. Returns the proposal id."""
+        if not proposal.id or not isinstance(proposal.id, str):
+            raise ValueError("proposal.id must be a non-empty string")
         proposals = self._load()
         proposals.append(proposal.to_dict())
         self._save(proposals)
@@ -86,6 +88,8 @@ class ProposalStore:
 
     def review(self, proposal_id: str, approved: bool, note: str = "") -> DimensionProposal | None:
         """Approve or reject a pending proposal."""
+        if not isinstance(proposal_id, str) or not proposal_id.strip():
+            raise ValueError("proposal_id must be a non-empty string")
         proposals = self._load()
         for p in proposals:
             if p["id"] == proposal_id and p["status"] == "pending":
