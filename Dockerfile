@@ -9,9 +9,10 @@ WORKDIR /workspace/selfplay
 COPY pyproject.toml README.md ./
 COPY src ./src
 COPY tests ./tests
+COPY examples/selfplay-code-review.yaml ./selfplay-code-review.yaml
 
 RUN python -m pip install --upgrade pip \
-    && python -m pip install -e "." \
-    && python -m pip install pytest rich pyyaml anthropic
+    && python -m pip install -e ".[sdk,evaluation]" \
+    && python -m pip install pytest rich
 
 CMD ["selfplay", "demo", "Docker self-evolution smoke test"]

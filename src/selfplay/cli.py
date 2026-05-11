@@ -450,13 +450,16 @@ async def run_async(args: argparse.Namespace) -> None:
             print(color(f"File not found: {args.file}", "red", use_color))
             return
         content = file_path.read_text(encoding="utf-8")
-        # Resolve profile: prefer config.profile (from --profile flag), then runtime match
+        # Resolve profile: check all sources — main parser --profile, config.profile, first available
         profile = None
         if config.profiles:
-            if config.profile and config.profile in config.profiles:
-                profile = config.profiles[config.profile]
+            # Try explicit profile from main parser (not subparser's --profile which has default=None)
+            main_profile = config.profile
+            if main_profile and main_profile in config.profiles:
+                profile = config.profiles[main_profile]
             else:
-                profile = config.resolve_profile(args.runtime or config.runtime)
+                # Fallback: use the first profile in config
+                profile = next(iter(config.profiles.values()))
         dims = profile.resolve_dimensions(config.dimensions) if profile else config.dimensions
         evaluator = HeuristicEvaluator(dimensions=dims or None)
         eval_result = evaluator.evaluate_text(task=f"code review: {file_path.name}", output=content)

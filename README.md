@@ -107,11 +107,43 @@ docker compose up --build
 selfplay demo                    # 30秒体验自进化
 selfplay run "你的任务"           # 执行任务（3轮进化）
 selfplay run --cycles 5 "任务"   # 5轮进化
+selfplay check src/myfile.py     # 代码质量审查（零 API key）
 selfplay history                 # 查看进化历史
 selfplay tree                    # 可视化进化树 🌳
 selfplay init                    # 创建配置文件
 selfplay --runtime claude run    # 使用 Claude 作为运行时
 ```
+
+---
+
+## 代码审查 — 零 API Key 的代码质量检查
+
+```bash
+# 创建审查配置（或复制 selfplay-code-review.yaml）
+selfplay --config selfplay-code-review.yaml check src/myfile.py
+
+# JSON 输出（适合 CI 集成）
+selfplay --config selfplay-code-review.yaml check --json src/myfile.py
+```
+
+输出示例：
+
+```
+SelfPlay code review: evaluator.py
+  Score: 0.72  [██████████████░░░░░░] 0.72
+
+  ✅ 有类型标注 (14%) — matched_pattern: : str
+  ✅ 有 docstring (12%) — matched_pattern: """
+  ✅ 有错误处理 (14%) — matched_keyword: try
+  ❌ 有日志记录 (8%) — not_found
+  ❌ 有类型检查 (10%) — not_found
+  ❌ 有参数文档 (10%) — not_found
+  ...
+```
+
+**10 维度代码审查**：类型标注、docstring、错误处理、日志记录、类型检查、参数文档、测试断言、代码注释、函数长度、返回标注。
+
+完全可自定义 — 编辑 `selfplay-code-review.yaml` 添加你自己的维度。
 
 ---
 
