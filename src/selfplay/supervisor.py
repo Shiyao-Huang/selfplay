@@ -153,6 +153,8 @@ class OEDMSupervisor:
 
     @staticmethod
     def extract_result(events: list[RuntimeEvent]) -> str:
+        # stream.delta events MUST NOT be included here — they are
+        # observation-only and would pollute evaluator scoring if mixed in.
         return "\n".join(
             e.content for e in events if e.kind in {"message", "turn.completed", "error"}
         ).strip()
