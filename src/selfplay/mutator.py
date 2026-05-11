@@ -1,3 +1,26 @@
+"""SelfPlay 变异器：基于评估结果重写 Agent Prompt。
+
+结论：RuleBasedMutator 将 EvalResult.weaknesses 和 features 转化为具体进化约束，
+追加到 prompt 末尾驱动下一轮输出改善。零外部依赖，mock 模式即可运行。
+
+证据路径：mutate() 调用 rewrite_prompt() → compress_prompt() 链，
+单元测试验证 score_after < 1.0 且 prompt 不超过 max_prompt_length。
+
+下一步：1) PromptMutator 接入 LLM 重写  2) 支持多策略变异（A/B 测试）。
+
+错误处理：mutate() 在 score >= threshold 或无弱点时返回 None（不做无效变异）；
+rewrite_prompt() 对空 guidance 返回原始压缩 prompt。
+
+复杂度：rewrite_prompt O(L) L=拆分段落数；compress_prompt O(n) n=字符数。
+整体 O(L+n)，远低于 LLM 推理开销。
+
+示例：
+    mutator = RuleBasedMutator(threshold=0.9)
+    new_image = await mutator.mutate(old_image, eval_result)
+    print(new_image.eval.score)  # 预期 > eval_result.score
+
+步骤：1) 检查是否需要变异 → 2) 提取失败维度标签 → 3) 合并新旧约束 → 4) 重写 prompt → 5) 返回新 AgentImage。
+"""
 from __future__ import annotations
 
 from dataclasses import dataclass

@@ -1,8 +1,24 @@
-"""Self-evolving dimension proposal and approval flow.
+"""SelfPlay 维度提案与审批流：Strange Loop 自进化机制。
 
-An Agent can propose new evaluation dimensions based on observed weaknesses.
-Proposals are stored on disk for human review. Approved proposals are merged
-into the active evaluation profile. Rejected proposals are recorded for audit.
+结论：Agent 可基于观察到的弱点自动提出新评估维度，经人类审批后合入活跃 Profile，
+实现评估标准的自进化闭环。
+
+证据路径：ProposalStore 基于 JSON 文件持久化，submit/review/list_pending 三步操作
+均有对应的单元测试验证状态流转正确性。
+
+下一步：1) 支持批量审批  2) 增加提案理由的 LLM 自动评分。
+
+错误处理：JSON 解析失败时 _load() 返回空列表而非抛异常；review() 找不到提案时返回 None。
+
+复杂度：文件 I/O O(p) p=提案数；内存操作均为线性扫描，适合中小规模使用。
+
+示例：
+    store = ProposalStore("data/proposals.json")
+    store.submit(DimensionProposal(id="dim_1", label="可读性", rationale="输出需包含结论"))
+    store.review("dim_1", approved=True)
+    merge_approved_into_profile(profile, store.list_all())
+
+步骤：1) Agent 提交提案 → 2) 人类审批/驳回 → 3) 合入 Profile → 4) 下一轮进化使用新维度。
 """
 from __future__ import annotations
 

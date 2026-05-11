@@ -1,3 +1,26 @@
+"""SelfPlay 数据模型：AgentImage、AgentGenome、EvalResult 等核心类型。
+
+结论：本模块定义 SelfPlay 的全部数据结构，是 OEDM 闭环中各组件共享的统一数据契约。
+
+证据路径：所有模块（supervisor / mutator / evaluator / storage）均依赖本模块的类型定义，
+单元测试覆盖 compress_prompt 去重、mutated_prompt 长度裁剪、from_genome 反序列化。
+
+下一步：1) 增加 AgentImage 版本链追踪  2) 支持 JSON Schema 校验  3) 增加序列化兼容层。
+
+错误处理：from_genome() 对非 dict 输入抛 TypeError；compress_prompt 对超长文本截断中间并记录日志；
+mutated_prompt 硬性保证输出不超过 max_prompt_length。
+
+复杂度：compress_prompt O(s) s=句数去重；compress_prompt 截断 O(1)；整体无热路径瓶颈。
+
+示例：
+    image = AgentImage(runtime_adapter="claude")
+    genome = image.to_genome()
+    restored = AgentImage.from_genome(genome)
+    assert restored.prompt == image.prompt
+
+步骤：1) 定义枚举/常量 → 2) compress_prompt 工具函数 → 3) AgentGenome 旧接口 →
+4) AgentImage 新接口 → 5) EvalResult / FeatureBreakdown → 6) 循环结果类型。
+"""
 from __future__ import annotations
 
 import logging

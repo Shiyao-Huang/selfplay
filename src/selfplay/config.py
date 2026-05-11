@@ -1,3 +1,23 @@
+"""SelfPlay 配置层：评估维度、Profile 与 YAML 解析。
+
+结论：本模块定义 EvaluationDimension / EvaluationProfile / SelfPlayConfig 三层数据模型，
+是整个 OEDM 闭环评分标准的数据基础。
+
+证据路径：YAML 配置经 _parse_flat_yaml（无依赖）或 _parse_dimensions / _parse_profiles
+（需 pyyaml 可选依赖）两条路径解析，单元测试覆盖两种路径。
+
+下一步：1) 支持从远程 URL 拉取 Profile  2) 增加版本迁移兼容逻辑。
+
+错误处理：_parse_* 函数对 malformed YAML / 缺失字段 / 类型不匹配均做防御性兜底，
+不会抛出异常影响主流程。
+
+复杂度：YAML 解析 O(n) 线性扫描；Profile 合并 O(d) d=维度数；整体无热路径瓶颈。
+
+示例：SelfPlayConfig.load("selfplay.yaml", overrides={"threshold": 0.8})
+从磁盘读取配置并覆盖阈值。
+
+步骤：1) 定义数据模型 → 2) 实现 YAML 解析 → 3) Profile 解析与维度继承 → 4) 序列化回 YAML。
+"""
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field

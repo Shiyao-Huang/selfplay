@@ -1,3 +1,26 @@
+"""SelfPlay 持久化层：SQLite 存储 AgentImage、评估记录与运行时事件。
+
+结论：GenomeStore 提供统一的磁盘持久化接口，支持 AgentImage CRUD、评估记录查询
+和运行时事件流存储，是 OEDM 闭环中唯一的数据持久化出口。
+
+证据路径：所有写入经 SQLite WAL 模式保证原子性；查询经 index 优化；
+单元测试覆盖空库、单条、批量场景。Docker QA 验证跨容器数据一致性。
+
+下一步：1) 支持远程存储后端（S3/Postgres）  2) 增加数据迁移工具  3) 评估记录分页查询。
+
+错误处理：连接失败时抛 sqlite3.Error；save_genome / save_evaluation 对 None 字段做防御性处理；
+recent_evaluations 对空表返回空列表不抛异常。
+
+复杂度：save 操作 O(1) 单条 INSERT；recent_evaluations O(n) n=查询条数；
+latest_genome O(1) 使用 ORDER BY rowid DESC LIMIT 1 索引查询。
+
+示例：
+    store = GenomeStore("data/selfplay.sqlite")
+    store.save_genome(AgentGenome(instructions="test"))
+    records = store.recent_evaluations(limit=10)
+
+步骤：1) 初始化 SQLite 连接 → 2) 建表/迁移 → 3) save_* 写入 → 4) recent_* 查询 → 5) 关闭连接。
+"""
 from __future__ import annotations
 
 import json

@@ -1,3 +1,26 @@
+"""SelfPlay CLI：命令行入口，提供 check / demo / evolve / export 等子命令。
+
+结论：本模块是 SelfPlay 的用户交互层，通过 argparse 解析子命令并调度到
+supervisor / evaluator / tree_export 等核心模块完成实际工作。
+
+证据路径：selfplay check 调用 HeuristicEvaluator.evaluate()；demo 调用
+OEDMSupervisor.run_evolution()；export 调用 export_evolution_tree()。
+Docker QA 验证所有子命令在容器中正常执行。
+
+下一步：1) 增加 serve 子命令启动 Web API  2) 支持 --config 远程 URL  3) 增加进度条输出。
+
+错误处理：argparse 处理无效参数；asyncio.run 捕获顶层异常；各子命令对运行时错误
+输出友好提示而非 traceback。
+
+复杂度：CLI 解析 O(1)；各子命令复杂度取决于调用的核心模块，CLI 层无额外开销。
+
+示例：
+    selfplay check src/selfplay/models.py
+    selfplay --runtime claude demo "排序算法分析"
+    selfplay evolve --cycles 5 "代码审查" --runtime claude
+
+步骤：1) argparse 定义子命令 → 2) 解析参数 → 3) 调度到核心模块 → 4) 格式化输出结果。
+"""
 from __future__ import annotations
 
 import argparse

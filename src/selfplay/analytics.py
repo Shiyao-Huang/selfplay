@@ -1,4 +1,26 @@
-"""Evolution analytics: compute metrics from evaluation history."""
+"""SelfPlay 进化分析：从评估历史计算收敛指标、变异效果与维度趋势。
+
+结论：本模块提供 ConvergenceMetrics / MutationMetrics / DimensionTrend 三类指标，
+以及 suggest_dimensions() 实现自指性维度提案（Strange Loop 核心）。
+
+证据路径：compute_analytics() 从 GenomeStore 读取 recent_evaluations，经三阶段计算
+（收敛 → 变异 → 维度趋势）输出 EvolutionAnalytics。单元测试验证空数据边界。
+
+下一步：1) 增加跨 Profile 对比分析  2) 可视化 score_trajectory 图表输出。
+
+错误处理：records 为空时返回零值指标；features 字段缺失/类型不匹配时跳过该条记录。
+
+复杂度：compute_analytics O(n) n=记录数；suggest_dimensions O(d) d=维度数。
+均在毫秒级完成，不构成瓶颈。
+
+示例：
+    analytics = compute_analytics(store, limit=100)
+    print(f"收敛轮数: {analytics.convergence.cycles_to_threshold}")
+    for s in suggest_dimensions(store, analytics):
+        print(f"建议新增维度: {s['label']}")
+
+步骤：1) 收集评估记录 → 2) 计算收敛指标 → 3) 计算变异指标 → 4) 维度趋势分析 → 5) 生成改进建议。
+"""
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field

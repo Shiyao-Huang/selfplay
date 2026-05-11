@@ -1,4 +1,25 @@
-"""Evolution tree export: SVG, Markdown, and Mermaid diagram output."""
+"""SelfPlay 进化树导出：SVG、Markdown 与 Mermaid 图表输出。
+
+结论：本模块将 AgentImage 的进化历史导出为可视化图表，支持 Mermaid DAG、
+Markdown 时间线和 SVG 三种格式，帮助用户直观理解 Agent 的自进化路径。
+
+证据路径：export_evolution_tree() 从 GenomeStore 读取全部评估记录，构建有向无环图
+并按格式输出。单元测试验证 Mermaid 语法正确性和 Markdown 结构完整性。
+
+下一步：1) 支持 HTML 交互式图表  2) 增加进化路径 diff 高亮  3) 支持自定义颜色方案。
+
+错误处理：空记录时返回提示信息而非抛异常；SVG 模板缺失时降级为 Mermaid 文本输出。
+
+复杂度：构建树 O(n) n=节点数；Mermaid 序列化 O(n)；SVG 渲染 O(n)。
+所有操作均为线性，适合大规模进化历史导出。
+
+示例：
+    store = GenomeStore("data/selfplay.sqlite")
+    result = export_evolution_tree(store, format="mermaid")
+    print(result.content)
+
+步骤：1) 读取评估记录 → 2) 构建进化树节点 → 3) 按格式序列化 → 4) 返回导出结果。
+"""
 from __future__ import annotations
 
 import logging
