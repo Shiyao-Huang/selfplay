@@ -104,3 +104,58 @@
 ## 失败项 TODO
 
 无。
+
+---
+
+## Appendix: Real Claude API Docker QA (2026-05-11)
+
+**首次在 Docker 中用真实 LLM 运行进化闭环。**
+
+### 环境
+
+| 项目 | 值 |
+| --- | --- |
+| Docker image | selfplay-qa (python:3.11-slim + anthropic SDK) |
+| Runtime adapter | AnthropicRuntimeAdapter (anthropic Python SDK) |
+| Model | claude-sonnet-4-20250514 |
+| API auth | `ANTHROPIC_AUTH_TOKEN` env (proxy-managed) |
+
+### Docker 命令
+
+```bash
+docker run --rm \
+  -e ANTHROPIC_AUTH_TOKEN="$ANTHROPIC_AUTH_TOKEN" \
+  -e ANTHROPIC_BASE_URL="http://host.docker.internal:15721" \
+  selfplay-qa \
+  selfplay --db /tmp/qa-real.db --runtime claude demo \
+  "审查 _check_dimension 函数：当 dim.type 不是 'length' 且既没有 pattern 也没有 keywords 时，函数返回 passed=False 但 evidence='no_pattern_or_keywords'。这是否应该视为配置错误而非评估失败？" \
+  --cycles 3
+```
+
+### 结果
+
+| Cycle | Score | Features | Decision |
+| --- | --- | --- | --- |
+| 1 | 0.56 → 0.92 | 4/8 passed | Rejected 1 attempt, conservative enrichment |
+| 2 | 1.00 → 1.00 | 8/8 passed | Threshold reached, early stop |
+
+- **Total improvement: +0.44**
+- **Early stop: Yes** (cycle 2 reached threshold)
+- **Runtime events**: 5 per cycle (thread.started, turn.started, message, usage, turn.completed)
+
+### 代码变更
+
+| 文件 | 变更 |
+| --- | --- |
+| `sdk_bridge.py` | +AnthropicRuntimeAdapter (anthropic SDK direct, AUTH_TOKEN fallback) |
+| `supervisor.py` | claude adapter → AnthropicRuntimeAdapter |
+| `Dockerfile` | +anthropic package |
+| `pyproject.toml` | sdk deps 加 anthropic>=0.30.0 |
+
+### 验证意义
+
+SelfPlay 首次在 Docker 中：
+1. 连接真实 Claude LLM API
+2. 对实际代码审查任务运行进化
+3. 通过 OEDM 闭环将 Agent 输出从 0.56 提升到 1.00
+4. 全程可复现（Docker + env injection + SQLite 持久化）
