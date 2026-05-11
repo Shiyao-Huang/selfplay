@@ -37,19 +37,21 @@ def _check_dimension(dim: EvaluationDimension, text: str, output: str) -> Featur
     if dim.type == "length":
         passed = len(output) >= dim.min_length
         evidence = f"length={len(output)}" if passed else f"length={len(output)} < {dim.min_length}"
-    elif dim.pattern:
-        match = re.search(dim.pattern, text, re.IGNORECASE)
-        if match:
-            matched = True
-            evidence = f"matched_pattern: {match.group()[:60]}"
-    elif dim.keywords:
-        for kw in dim.keywords:
-            if kw.lower() in text.lower():
-                matched = True
-                evidence = f"matched_keyword: {kw}"
-                break
     else:
-        evidence = "no_pattern_or_keywords"
+        # Check pattern first, then keywords — both can contribute
+        if dim.pattern:
+            match = re.search(dim.pattern, text, re.IGNORECASE)
+            if match:
+                matched = True
+                evidence = f"matched_pattern: {match.group()[:60]}"
+        if not matched and dim.keywords:
+            for kw in dim.keywords:
+                if kw.lower() in text.lower():
+                    matched = True
+                    evidence = f"matched_keyword: {kw}"
+                    break
+        if not matched and not dim.pattern and not dim.keywords:
+            evidence = "no_pattern_or_keywords"
 
     passed = matched if dim.type != "length" else len(output) >= dim.min_length
     return FeatureBreakdown(

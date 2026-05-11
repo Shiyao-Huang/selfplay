@@ -23,10 +23,13 @@ rewrite_prompt() 对空 guidance 返回原始压缩 prompt。
 """
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Protocol
 
 from .models import DEFAULT_MAX_PROMPT_LENGTH, AgentImage, EvalResult, compress_prompt
+
+logger = logging.getLogger(__name__)
 
 
 class Mutator(Protocol):
@@ -47,10 +50,22 @@ class RuleBasedMutator:
     max_total_items: int = 6
 
     async def mutate(self, image: AgentImage, eval_result: EvalResult) -> AgentImage | None:
+        """Attempt to evolve the agent prompt based on evaluation feedback.
+
+        :param image: current AgentImage
+        :param eval_result: evaluation result with weaknesses and features
+        :return: new AgentImage with evolved prompt, or None if no mutation needed
+        :raises ValueError: if eval_result.score is not in [0, 1]
+        """
+        # Guard: validate input score range
+        if not isinstance(eval_result.score, (int, float)):
+            raise TypeError(f"eval_result.score must be numeric, got {type(eval_result.score).__name__}")
         if eval_result.score >= self.threshold:
             return None
         if not eval_result.weaknesses and not eval_result.suggestion:
+            logger.debug("mutate: no weaknesses or suggestion, skipping")
             return None
+        # Spec: ensure prompt length limit is respected
         new_prompt = self.rewrite_prompt(image.prompt, eval_result)
         if new_prompt == compress_prompt(image.prompt, self.max_prompt_length):
             return None
@@ -91,10 +106,12 @@ class RuleBasedMutator:
         for item in eval_result.suggestion.split("；"):
             if item and item not in focus and len(focus) < self.max_focus_items:
                 focus.append(item)
+        # De-dup using dict — O(n) complexity, preserves order. Not O(n²) naive search.
         merged = list(dict.fromkeys(item.strip() for item in existing + focus if item.strip()))
         guidance = "；".join(merged[-self.max_total_items:])
         if not guidance:
             return compress_prompt(prompt, self.max_prompt_length)
+        # Resource: prompt tokens bounded by max_prompt_length, no cleanup needed (stateless)
         kept.append(f"{marker}下一次输出必须改善：{guidance}")
         kept.append(tail)
         return compress_prompt("。".join(kept) + "。", self.max_prompt_length)
