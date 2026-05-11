@@ -134,22 +134,22 @@
 
 ### 4.2 核心发现
 
-1. **code-review profile 有语言偏差**（P0）：中文关键词无法匹配英文 docstring → avg 0.20
+1. **DEFAULT_DIMENSIONS fallback UX 问题**（P0）：初次扫描因未指定 profile → fallback 到中文关键词 → avg 0.20（SA 纠正后确认 code-review profile 本身是语言无关的）
 2. **projdevbench 准确识别质量梯度**（✅）：0.24（api.py）→ 0.92（adapters.py）
-3. **test_evidence 维度有结构性局限**：无法检测分离的测试目录
+3. **code-review 也准确识别梯度**（✅）：0.06（\_\_version\_\_.py）→ 0.92（adapters.py），SA 验证
+4. **双 profile 高分一致**：adapters.py 两个 profile 都给 0.92
 
 ### 4.3 PMF 结果类型
 
-第三种 PMF 叙事（框架中未预见）：
-
-> **"SelfPlay 用自己评估外部项目，发现了自己评估工具的语言盲区"**
-
-这是第 3.5 层 Strange Loop——用评估工具评估外部项目 → 发现评估工具自身有语言偏差 → 需修复 → 工具进化。
+> **"5 分钟，SelfPlay 完成了对 Python 最流行 HTTP 库的质量评估"**
+>
+> 质量梯度 0.06→0.92，与代码复杂度和工程质量的直觉完全一致。
+> 这证明 SelfPlay 能区分代码质量，不是"给所有代码打高分"的玩具。
 
 ### 4.4 完整报告
 
-→ 见 `research/external-project-audit-report.md`
+→ 见 `research/external-project-audit-report.md`（已更正 SA 纠正后的数据）
 
 ---
 
-*框架执行完毕。完整报告已输出至 research/external-project-audit-report.md。*
+*框架执行完毕。报告已更正：初次结论（code-review 语言偏差）是错误的，真正问题是 DEFAULT_DIMENSIONS fallback UX。*

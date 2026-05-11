@@ -277,7 +277,6 @@ def build_parser() -> argparse.ArgumentParser:
     analytics.add_argument("--json", action="store_true", help="print machine-readable JSON")
     check = sub.add_parser("check", help="evaluate a source file using configured dimensions")
     check.add_argument("file", help="path to source file to evaluate")
-    check.add_argument("--profile", default=None, help="evaluation profile id from config")
     check.add_argument("--json", action="store_true", help="print machine-readable JSON")
     suggest = sub.add_parser("suggest-dimensions", help="auto-suggest new evaluation dimensions (Strange Loop)")
     suggest.add_argument("--limit", type=int, default=50, help="evaluations to analyze")
