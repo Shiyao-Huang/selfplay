@@ -10,19 +10,19 @@
 
 ## 1. 分层压缩
 
-**1 句话**：SelfPlay 首次对外部项目（requests 库）的审查揭示了 code-review profile 的语言偏差问题，同时验证了 projdevbench profile 对工程质量梯度的准确识别。
+**1 句话**：SelfPlay 首次对外部项目（requests 库）的双 profile 审查成功验证了通用评估能力，同时暴露了 DEFAULT_DIMENSIONS fallback 的 UX 问题。
 
 **3 句话**：
-1. 9 文件双 profile 评估：code-review avg 0.20 vs projdevbench avg 0.68，差距 0.48
-2. code-review 因中文关键词导致英文项目系统性低分——这是工具局限，不是代码质量问题
-3. projdevbench 正确识别了质量梯度（简单文件 0.24 → 核心文件 0.92），验证了 SelfPlay 的工程评估能力
+1. 双 profile 正确评估 requests：code-review avg 0.53（SA 数据），projdevbench avg 0.68（Org-manager 数据）
+2. 初次扫描因未加载 profile → fallback 到 DEFAULT_DIMENSIONS（中文关键词）→ 给出 0.20 的错误低分
+3. 正确加载后，两个 profile 都能准确识别质量梯度（0.24→0.92），验证了 SelfPlay 的通用评估能力
 
 **5 句话**：
 1. 这是 SelfPlay 从"自研代码 dogfooding"走向"真实世界验证"的关键里程碑
-2. 最大的意外发现是 code-review profile 的语言偏差：中文关键词（结论/证据/示例）无法匹配英文 docstring
-3. projdevbench profile 因使用英文 pattern/keywords（`isinstance`, `except`, `with`）成功评估了英文代码
-4. requests 核心文件（adapters/utils/models）工程分数 0.84~0.92，与代码质量和复杂度的直觉完全一致
-5. 这意味着 SelfPlay 已经可以作为通用代码质量评估工具——但需要先修复 code-review profile 的双语支持
+2. code-review profile（YAML）是语言无关的——pattern 检查 Python 语法（type hints, docstrings, try/except），不依赖中文
+3. 0.20 的错误低分源于 DEFAULT_DIMENSIONS fallback（evaluator.py 内置中文关键词），不是 profile 本身的局限
+4. projdevbench 正确识别质量梯度（0.24→0.92），code-review 也识别（0.06→0.92），两个 profile 都有效
+5. 真正需要修复的是 UX：用户必须明确指定 `--profile` 或 `--config`，否则 fallback 到不适用的 DEFAULT_DIMENSIONS
 
 ---
 

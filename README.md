@@ -92,11 +92,17 @@ pip install "selfplay[sdk]"
 selfplay --runtime claude run "你的任务"
 ```
 
-### Docker
+### Docker（推荐生产环境）
 
 ```bash
-cp .env.example .env
-docker compose up --build
+# 使用真实 Claude 进行自进化
+docker build -t selfplay .
+docker run --rm \
+  -e ANTHROPIC_AUTH_TOKEN=your_token \
+  -e ANTHROPIC_BASE_URL=http://host.docker.internal:15721 \
+  selfplay selfplay --config examples/selfplay-claude-evolution.yaml demo "你的任务"
+
+# 实测结果：3 cycle 0.56 → 1.00 (+0.44)
 ```
 
 ---
