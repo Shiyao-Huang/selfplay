@@ -1,0 +1,51 @@
+[project]
+name = "selfplay"
+version = "0.2.0"
+description = "SelfPlay — 能自我进化的 AI Agent 框架 | Self-evolving AI Agent framework"
+readme = "README.md"
+license = "MIT"
+authors = [{name = "shiyao-huang", email = "21120360@bjtu.edu.cn"}]
+requires-python = ">=3.9"
+keywords = ["ai", "agent", "self-evolving", "self-referential", "oedm", "cli", "open-source"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = []
+
+[project.optional-dependencies]
+tui = ["textual>=0.50.0"]
+sdk = ["httpx>=0.27.0"]
+evaluation = ["pyyaml>=6.0"]
+dev = ["pytest>=7.0", "ruff>=0.1.0"]
+
+[project.scripts]
+selfplay = "selfplay.cli:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.urls]
+Homepage = "https://github.com/shiyao-huang/selfplay"
+Documentation = "https://github.com/shiyao-huang/selfplay#readme"
+Repository = "https://github.com/shiyao-huang/selfplay"
+Issues = "https://github.com/shiyao-huang/selfplay/issues"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"

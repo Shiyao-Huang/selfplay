@@ -1,0 +1,5 @@
+runtime: mock
+threshold: 0.9
+database: data/selfplay.sqlite
+cycles: 3
+max_prompt_length: 2000

@@ -1,0 +1,22 @@
+services:
+  selfplay:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: selfplay-dev:latest
+    working_dir: /workspace/selfplay
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      SELFPLAY_RUNTIME: ${SELFPLAY_RUNTIME:-mock}
+      SELFPLAY_TASK: ${SELFPLAY_TASK:-Docker self-evolution smoke test}
+      SELFPLAY_DB: ${SELFPLAY_DB:-data/selfplay.sqlite}
+    volumes:
+      - selfplay-data:/workspace/selfplay/data
+    command: >
+      sh -lc 'selfplay --runtime "$${SELFPLAY_RUNTIME}" --db "$${SELFPLAY_DB}"
+      demo "$${SELFPLAY_TASK}"'
+
+volumes:
+  selfplay-data:

@@ -1,0 +1,30 @@
+graph TD
+    subgraph Functions["F: Functions Layer"]
+        F-001["F-001 ✅ OEDM Engine"]
+        F-002["F-002 ✅ ConfigDrivenEvaluator"]
+        F-003["F-003 ✅ Structured Mutator"]
+        F-004["F-004 ✅ CLI Commands"]
+        F-005["F-005 ✅ Docker QA Pipeline"]
+        F-006["F-006 ✅ Supervisor"]
+        F-007["F-007 ✅ YAML Config Loader"]
+        F-008["F-008 📋 Multi-profile Engine"]
+        F-009["F-009 📋 Claude API Evaluator"]
+        F-010["F-010 📋 Self-evolving Dims"]
+        F-011["F-011 📋 Analytics Dashboard"]
+        F-012["F-012 📋 Tree Export"]
+    end
+
+    F-001 --> F-002 --> F-003
+    F-001 --> F-006 --> F-004
+    F-007 --> F-002
+    F-002 --> F-003
+    F-008 --> F-010
+    F-009 --> F-010
+    F-011 --> F-010
+    F-012 -.-> F-010
+
+    style F-008 fill:#f9f,stroke:#333
+    style F-009 fill:#f9f,stroke:#333
+    style F-010 fill:#f9f,stroke:#333
+    style F-011 fill:#f9f,stroke:#333
+    style F-012 fill:#ff9,stroke:#333

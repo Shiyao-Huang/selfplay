@@ -1,0 +1,20 @@
+graph TD
+    subgraph UI["U: UI Layer"]
+        U-001["U-001 ✅ Rich Terminal"]
+        U-002["U-002 ✅ JSON Output"]
+        U-003["U-003 ✅ TUI"]
+        U-004["U-004 ✅ Docker Container"]
+        U-005["U-005 ✅ ASCII Tree"]
+        U-006["U-006 📋 Shareable Artifacts"]
+        U-007["U-007 📋 Analytics Viz"]
+    end
+
+    F004 --> U-001
+    F004 --> U-002
+    F004 --> U-003
+    F004 --> U-005
+    F012 --> U-006
+    F011 --> U-007
+
+    style U-006 fill:#ff9,stroke:#333
+    style U-007 fill:#ff9,stroke:#333

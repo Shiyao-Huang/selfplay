@@ -1,0 +1,20 @@
+graph TD
+    subgraph Data["D: Data Layer"]
+        D-001["D-001 ✅ AgentImage"]
+        D-002["D-002 ✅ EvalResult + FeatureBreakdown"]
+        D-003["D-003 ✅ EvaluationDimension YAML"]
+        D-004["D-004 ✅ SQLite features_json"]
+        D-005["D-005 📋 Multi-profile Schema"]
+        D-006["D-006 📋 Evolution Metrics Schema"]
+    end
+
+    R001 -.-> D-001
+    R003 -.-> D-002
+    R003 -.-> D-003
+    R005 -.-> D-005
+    R006 -.-> D-006
+
+    D-001 --> D-002
+    D-002 --> D-003
+    D-003 --> D-005
+    D-004 --> D-006

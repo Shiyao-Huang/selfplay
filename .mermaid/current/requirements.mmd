@@ -1,0 +1,12 @@
+graph LR
+    subgraph Requirements["R: Requirements Layer"]
+        R-001["R-001 ✅ Self-evolving CLI (GRB)"]
+        R-002["R-002 ✅ Docker QA (Bach SOP)"]
+        R-003["R-003 ✅ Config-driven Evaluator"]
+        R-004["R-004 📋 Launch to Community"]
+        R-005["R-005 📋 Multi-profile + Claude"]
+        R-006["R-006 📋 Self-evolving Dims"]
+        R-007["R-007 📋 World-class DX"]
+    end
+
+    R-004 -.-> R-005 -.-> R-006 -.-> R-007

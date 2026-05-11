@@ -1,0 +1,496 @@
+{
+  "version": null,
+  "nodes": [
+    {
+      "id": "R-001",
+      "title": "Self-evolving CLI tool (GRB closed loop)",
+      "layer": "R",
+      "status": "done",
+      "session": null,
+      "kind": "requirement",
+      "expected": "OEDM loop: Observe→Evaluate→Decide→Mutate visible per cycle"
+    },
+    {
+      "id": "R-002",
+      "title": "Docker QA driven development (Bach SOP)",
+      "layer": "R",
+      "status": "done",
+      "session": null,
+      "kind": "requirement",
+      "expected": "From-zero Docker build + capability matrix + evidence gate"
+    },
+    {
+      "id": "R-003",
+      "title": "Config-driven evaluator with FeatureBreakdown",
+      "layer": "R",
+      "status": "done",
+      "session": null,
+      "kind": "requirement",
+      "expected": "YAML configurable evaluation dimensions, per-dimension scoring"
+    },
+    {
+      "id": "R-004",
+      "title": "Launch to global developer community",
+      "layer": "R",
+      "status": "todo",
+      "session": null,
+      "kind": "requirement",
+      "expected": "GitHub repo + pip publish + Show HN + Chinese community launch"
+    },
+    {
+      "id": "R-005",
+      "title": "Multi-profile support + Claude calibration",
+      "layer": "R",
+      "status": "done",
+      "session": null,
+      "kind": "requirement",
+      "expected": "Multiple eval profiles, Claude API calibration for real scoring"
+    },
+    {
+      "id": "R-006",
+      "title": "Self-evolving evaluation dimensions (Strange Loop origin)",
+      "layer": "R",
+      "status": "done",
+      "session": null,
+      "kind": "requirement",
+      "expected": "System can evolve its own evaluation criteria — GRB Strange Loop"
+    },
+    {
+      "id": "R-007",
+      "title": "World-class developer experience",
+      "layer": "R",
+      "status": "done",
+      "session": null,
+      "kind": "requirement",
+      "expected": "30s install-to-demo, beautiful terminal output, shareable evolution tree"
+    },
+    {
+      "id": "D-001",
+      "title": "AgentImage data model",
+      "layer": "D",
+      "status": "done",
+      "session": null,
+      "kind": "data",
+      "file": "src/selfplay/agents.py",
+      "expected": "id, prompt, parent_id, scores, metadata"
+    },
+    {
+      "id": "D-002",
+      "title": "EvalResult + FeatureBreakdown models",
+      "layer": "D",
+      "status": "done",
+      "session": null,
+      "kind": "data",
+      "file": "src/selfplay/models.py",
+      "expected": "per-dimension scoring with id/label/passed/score/weight/evidence"
+    },
+    {
+      "id": "D-003",
+      "title": "EvaluationDimension config schema",
+      "layer": "D",
+      "status": "done",
+      "session": null,
+      "kind": "data",
+      "file": "src/selfplay/config.py",
+      "expected": "YAML: id/label/pattern/keywords/weight/enabled"
+    },
+    {
+      "id": "D-004",
+      "title": "SQLite storage with features_json",
+      "layer": "D",
+      "status": "done",
+      "session": null,
+      "kind": "data",
+      "file": "src/selfplay/storage.py",
+      "expected": "idempotent migration, feature round-trip persistence"
+    },
+    {
+      "id": "D-005",
+      "title": "Multi-profile YAML schema",
+      "layer": "D",
+      "status": "done",
+      "session": null,
+      "kind": "data",
+      "expected": "Named evaluation profiles (strict/balanced/lenient), switchable"
+    },
+    {
+      "id": "D-006",
+      "title": "Evolution metrics analytics schema",
+      "layer": "D",
+      "status": "done",
+      "session": null,
+      "kind": "data",
+      "expected": "Convergence rate, mutation effectiveness, dimension improvement trends"
+    },
+    {
+      "id": "F-001",
+      "title": "OEDM loop engine",
+      "layer": "F",
+      "status": "done",
+      "session": null,
+      "kind": "function",
+      "file": "src/selfplay/oedm.py",
+      "expected": "4-stage cycle: observe→evaluate→decide→mutate"
+    },
+    {
+      "id": "F-002",
+      "title": "ConfigDrivenEvaluator (8 dimensions)",
+      "layer": "F",
+      "status": "done",
+      "session": null,
+      "kind": "function",
+      "file": "src/selfplay/evaluator.py",
+      "expected": "Dynamic dimension loading, weight normalization, evidence collection"
+    },
+    {
+      "id": "F-003",
+      "title": "Structured Mutator (failed_feature_ids)",
+      "layer": "F",
+      "status": "done",
+      "session": null,
+      "kind": "function",
+      "file": "src/selfplay/mutator.py",
+      "expected": "Mutation targets from eval_result.features, fallback to weaknesses"
+    },
+    {
+      "id": "F-004",
+      "title": "CLI commands (7 subcommands)",
+      "layer": "F",
+      "status": "done",
+      "session": null,
+      "kind": "function",
+      "file": "src/selfplay/cli.py",
+      "expected": "demo/run/history/tree/tui/init/status + --json flag"
+    },
+    {
+      "id": "F-005",
+      "title": "Docker QA pipeline",
+      "layer": "F",
+      "status": "done",
+      "session": null,
+      "kind": "function",
+      "file": "qa-docker.sh",
+      "expected": "18 automated checks: DQ-01~DQ-13 + SP-11~SP-15"
+    },
+    {
+      "id": "F-006",
+      "title": "Supervisor orchestration",
+      "layer": "F",
+      "status": "done",
+      "session": null,
+      "kind": "function",
+      "file": "src/selfplay/supervisor.py",
+      "expected": "Multi-cycle evolution with feature pipeline"
+    },
+    {
+      "id": "F-007",
+      "title": "YAML config loader",
+      "layer": "F",
+      "status": "done",
+      "session": null,
+      "kind": "function",
+      "file": "src/selfplay/config.py",
+      "expected": "PyYAML optional, fallback to DEFAULT_DIMENSIONS"
+    },
+    {
+      "id": "F-008",
+      "title": "Multi-profile evaluation engine",
+      "layer": "F",
+      "status": "done",
+      "session": null,
+      "kind": "function",
+      "expected": "Load named profile, hot-swap dimensions without restart"
+    },
+    {
+      "id": "F-009",
+      "title": "Claude API evaluator (real scoring)",
+      "layer": "F",
+      "status": "done",
+      "session": null,
+      "kind": "function",
+      "expected": "Replace mock scoring with Claude API evaluation for real prompts"
+    },
+    {
+      "id": "F-010",
+      "title": "Self-evolving dimensions (Strange Loop)",
+      "layer": "F",
+      "status": "done",
+      "session": null,
+      "kind": "function",
+      "expected": "System proposes new evaluation dimensions based on evolution history"
+    },
+    {
+      "id": "F-011",
+      "title": "Evolution analytics dashboard",
+      "layer": "F",
+      "status": "done",
+      "session": null,
+      "kind": "function",
+      "expected": "selfplay analytics — convergence, mutation effectiveness, dimension trends"
+    },
+    {
+      "id": "F-012",
+      "title": "Evolution tree export (shareable)",
+      "layer": "F",
+      "status": "done",
+      "session": null,
+      "kind": "function",
+      "expected": "SVG/PNG/Markdown tree export for social sharing"
+    },
+    {
+      "id": "U-001",
+      "title": "Rich CLI terminal output",
+      "layer": "U",
+      "status": "done",
+      "session": null,
+      "kind": "ui",
+      "expected": "Colored cycles, emoji indicators, evolution summary"
+    },
+    {
+      "id": "U-002",
+      "title": "JSON output mode",
+      "layer": "U",
+      "status": "done",
+      "session": null,
+      "kind": "ui",
+      "expected": "selfplay demo --json with full FeatureBreakdown serialization"
+    },
+    {
+      "id": "U-003",
+      "title": "TUI interface",
+      "layer": "U",
+      "status": "done",
+      "session": null,
+      "kind": "ui",
+      "expected": "Interactive terminal UI"
+    },
+    {
+      "id": "U-004",
+      "title": "Docker container experience",
+      "layer": "U",
+      "status": "done",
+      "session": null,
+      "kind": "ui",
+      "expected": "pip install + demo in container, clean exit"
+    },
+    {
+      "id": "U-005",
+      "title": "Evolution tree visualization (ASCII)",
+      "layer": "U",
+      "status": "done",
+      "session": null,
+      "kind": "ui",
+      "expected": "selfplay tree — parent→child lineage display"
+    },
+    {
+      "id": "U-006",
+      "title": "Shareable evolution artifacts",
+      "layer": "U",
+      "status": "done",
+      "session": null,
+      "kind": "ui",
+      "expected": "Export evolution tree as shareable image/Markdown for social media"
+    },
+    {
+      "id": "U-007",
+      "title": "Analytics visualization",
+      "layer": "U",
+      "status": "done",
+      "session": null,
+      "kind": "ui",
+      "expected": "selfplay analytics — charts for score trends, dimension radar"
+    }
+  ],
+  "edges": [
+    {
+      "from": "D-001",
+      "to": "F-001",
+      "type": "-->"
+    },
+    {
+      "from": "D-002",
+      "to": "F-002",
+      "type": "-->"
+    },
+    {
+      "from": "D-002",
+      "to": "F-003",
+      "type": "-->"
+    },
+    {
+      "from": "D-003",
+      "to": "F-002",
+      "type": "-->"
+    },
+    {
+      "from": "D-003",
+      "to": "F-007",
+      "type": "-->"
+    },
+    {
+      "from": "D-004",
+      "to": "F-006",
+      "type": "-->"
+    },
+    {
+      "from": "D-005",
+      "to": "F-008",
+      "type": "-->"
+    },
+    {
+      "from": "D-006",
+      "to": "F-010",
+      "type": "-->"
+    },
+    {
+      "from": "D-006",
+      "to": "F-011",
+      "type": "-->"
+    },
+    {
+      "from": "F-001",
+      "to": "F-006",
+      "type": "-->"
+    },
+    {
+      "from": "F-002",
+      "to": "F-003",
+      "type": "-->"
+    },
+    {
+      "from": "F-004",
+      "to": "U-001",
+      "type": "-->"
+    },
+    {
+      "from": "F-004",
+      "to": "U-002",
+      "type": "-->"
+    },
+    {
+      "from": "F-004",
+      "to": "U-003",
+      "type": "-->"
+    },
+    {
+      "from": "F-004",
+      "to": "U-005",
+      "type": "-->"
+    },
+    {
+      "from": "F-005",
+      "to": "U-004",
+      "type": "-->"
+    },
+    {
+      "from": "F-006",
+      "to": "F-004",
+      "type": "-->"
+    },
+    {
+      "from": "F-008",
+      "to": "F-010",
+      "type": "-->"
+    },
+    {
+      "from": "F-009",
+      "to": "F-010",
+      "type": "-->"
+    },
+    {
+      "from": "F-011",
+      "to": "U-007",
+      "type": "-->"
+    },
+    {
+      "from": "F-012",
+      "to": "U-006",
+      "type": "-->"
+    },
+    {
+      "from": "R-001",
+      "to": "D-001",
+      "type": "-.->"
+    },
+    {
+      "from": "R-001",
+      "to": "F-001",
+      "type": "-.->"
+    },
+    {
+      "from": "R-002",
+      "to": "D-004",
+      "type": "-.->"
+    },
+    {
+      "from": "R-002",
+      "to": "F-005",
+      "type": "-.->"
+    },
+    {
+      "from": "R-003",
+      "to": "D-002",
+      "type": "-.->"
+    },
+    {
+      "from": "R-003",
+      "to": "D-003",
+      "type": "-.->"
+    },
+    {
+      "from": "R-003",
+      "to": "F-002",
+      "type": "-.->"
+    },
+    {
+      "from": "R-004",
+      "to": "D-006",
+      "type": "-.->"
+    },
+    {
+      "from": "R-004",
+      "to": "U-006",
+      "type": "-.->"
+    },
+    {
+      "from": "R-005",
+      "to": "D-005",
+      "type": "-.->"
+    },
+    {
+      "from": "R-005",
+      "to": "F-008",
+      "type": "-.->"
+    },
+    {
+      "from": "R-005",
+      "to": "F-009",
+      "type": "-.->"
+    },
+    {
+      "from": "R-006",
+      "to": "D-006",
+      "type": "-.->"
+    },
+    {
+      "from": "R-006",
+      "to": "F-010",
+      "type": "-.->"
+    },
+    {
+      "from": "R-007",
+      "to": "D-006",
+      "type": "-.->"
+    },
+    {
+      "from": "R-007",
+      "to": "U-006",
+      "type": "-.->"
+    },
+    {
+      "from": "R-007",
+      "to": "U-007",
+      "type": "-.->"
+    }
+  ]
+}

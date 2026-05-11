@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+*.egg-info/
+build/
+dist/
+data/*.sqlite
+node_modules/
+.DS_Store
+.aha/
+.mermaid/merge_graph.py
+selfplay-qa-data/
+# Sources are reference repos, not part of SelfPlay
+sources/
