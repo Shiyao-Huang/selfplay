@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from dataclasses import asdict, dataclass
 from typing import Any
 
@@ -53,7 +54,9 @@ class OEDMSupervisor:
     def __post_init__(self) -> None:
         self.runtime_adapters: dict[str, RuntimeAdapter] = {
             "mock": MockRuntimeAdapter(),
-            "claude": AnthropicRuntimeAdapter(),
+            "claude": AnthropicRuntimeAdapter(
+                stream=os.environ.get("SELFPLAY_STREAM", "").lower() in ("1", "true", "yes"),
+            ),
             "codex": CodexRuntimeAdapter(),
         }
         dims = self._resolve_dimensions()

@@ -10,7 +10,7 @@ from .models import AgentImage
 
 EventKind = Literal[
     "thread.started", "turn.started", "tool.started", "tool.ended",
-    "message", "diff", "usage", "turn.completed", "error",
+    "message", "stream.delta", "diff", "usage", "turn.completed", "error",
 ]
 
 
@@ -182,11 +182,18 @@ class ClaudeRuntimeAdapter:
 
 @dataclass
 class AnthropicRuntimeAdapter:
-    """Real LLM adapter using the official anthropic Python SDK."""
+    """Real LLM adapter using the official anthropic Python SDK.
+
+    Set stream=True to receive token-by-token stream.delta events during
+    generation.  When stream=False (default), a single "message" event is
+    emitted after the full response is received — identical to the original
+    behaviour and fully backward-compatible.
+    """
 
     name: str = "claude"
     model: str = "claude-sonnet-4-20250514"
     max_tokens: int = 1024
+    stream: bool = False
 
     async def run(self, image: AgentImage, goal: str) -> AsyncIterator[RuntimeEvent]:
         try:
@@ -201,33 +208,81 @@ class AnthropicRuntimeAdapter:
             return
 
         yield RuntimeEvent("thread.started", "anthropic query", self.name, {"image_id": image.id})
-        yield RuntimeEvent("turn.started", goal, self.name, {"model": self.model})
+        yield RuntimeEvent("turn.started", goal, self.name, {"model": self.model, "stream": self.stream})
 
         try:
             api_key = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")
             base_url = os.environ.get("ANTHROPIC_BASE_URL") or None
             client = anthropic.AsyncAnthropic(api_key=api_key, base_url=base_url)
-            response = await client.messages.create(
-                model=self.model,
-                max_tokens=self.max_tokens,
-                system=image.prompt,
-                messages=[{"role": "user", "content": goal}],
-            )
-            text_parts = [
-                block.text for block in response.content if hasattr(block, "text")
-            ]
-            output = "\n".join(text_parts)
-            yield RuntimeEvent("message", output, self.name, {
-                "model": response.model,
-                "usage": {"input_tokens": response.usage.input_tokens, "output_tokens": response.usage.output_tokens},
-            })
-            yield RuntimeEvent("usage", str(response.usage), self.name, {"usage": {
-                "input_tokens": response.usage.input_tokens,
-                "output_tokens": response.usage.output_tokens,
-            }})
-            yield RuntimeEvent("turn.completed", "ok", self.name)
+
+            if self.stream:
+                async for event in self._run_streamed(client, image, goal):
+                    yield event
+            else:
+                async for event in self._run_sync(client, image, goal):
+                    yield event
         except Exception as exc:
             yield RuntimeEvent("error", f"Anthropic API call failed: {exc}", self.name)
+
+    async def _run_sync(
+        self, client: Any, image: AgentImage, goal: str,
+    ) -> AsyncIterator[RuntimeEvent]:
+        """Non-streaming: single message event after full response."""
+        response = await client.messages.create(
+            model=self.model,
+            max_tokens=self.max_tokens,
+            system=image.prompt,
+            messages=[{"role": "user", "content": goal}],
+        )
+        text_parts = [
+            block.text for block in response.content if hasattr(block, "text")
+        ]
+        output = "\n".join(text_parts)
+        yield RuntimeEvent("message", output, self.name, {
+            "model": response.model,
+            "usage": {"input_tokens": response.usage.input_tokens, "output_tokens": response.usage.output_tokens},
+        })
+        yield RuntimeEvent("usage", str(response.usage), self.name, {"usage": {
+            "input_tokens": response.usage.input_tokens,
+            "output_tokens": response.usage.output_tokens,
+        }})
+        yield RuntimeEvent("turn.completed", "ok", self.name)
+
+    async def _run_streamed(
+        self, client: Any, image: AgentImage, goal: str,
+    ) -> AsyncIterator[RuntimeEvent]:
+        """Streaming: emit stream.delta for each text chunk, then final message + usage."""
+        collected: list[str] = []
+        model_name: str | None = None
+        input_tokens: int = 0
+        output_tokens: int = 0
+
+        async with client.messages.stream(
+            model=self.model,
+            max_tokens=self.max_tokens,
+            system=image.prompt,
+            messages=[{"role": "user", "content": goal}],
+        ) as stream:
+            async for text in stream.text_stream:
+                collected.append(text)
+                yield RuntimeEvent("stream.delta", text, self.name)
+
+            # Get final message for usage stats
+            final = await stream.get_final_message()
+            model_name = final.model
+            input_tokens = final.usage.input_tokens
+            output_tokens = final.usage.output_tokens
+
+        full_output = "".join(collected)
+        yield RuntimeEvent("message", full_output, self.name, {
+            "model": model_name,
+            "usage": {"input_tokens": input_tokens, "output_tokens": output_tokens},
+            "streamed": True,
+        })
+        yield RuntimeEvent("usage", f"input={input_tokens} output={output_tokens}", self.name, {
+            "usage": {"input_tokens": input_tokens, "output_tokens": output_tokens},
+        })
+        yield RuntimeEvent("turn.completed", "ok", self.name)
 
 
 @dataclass
