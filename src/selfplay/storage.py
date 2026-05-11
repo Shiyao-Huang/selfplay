@@ -175,6 +175,12 @@ class GenomeStore:
         :param content: event text content
         :param metadata: structured event metadata
         """
+        # Validate inputs before persisting.
+        if not isinstance(cycle, int) or cycle < 0:
+            raise ValueError(f"cycle must be non-negative int, got {cycle}")
+        if not content or not isinstance(content, str):
+            logger.warning("save_runtime_event: empty or non-string content, skipping")
+            return
         self.conn.execute(
             """insert into runtime_events
             (cycle, kind, runtime, content, metadata_json, created_at)
