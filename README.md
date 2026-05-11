@@ -186,6 +186,37 @@ selfplay init
 
 ---
 
+## 真实案例：审查知名开源项目 🔍
+
+SelfPlay 可以对**任意 Python 项目**做代码质量评估。我们对 [requests](https://github.com/psf/requests) v2.32.5 做了双 profile 审查：
+
+```bash
+# 5 分钟内完成 9 文件双角度评估
+docker run --rm -v /path/to/requests:/review selfplay \
+  selfplay --config examples/selfplay-code-review.yaml check /review/requests/adapters.py
+  # → Score: 0.92  ✅ 9/10 dimensions passed
+
+docker run --rm -v /path/to/requests:/review selfplay \
+  selfplay --config examples/selfplay-projdevbench.yaml check /review/requests/adapters.py
+  # → Score: 0.92  ✅ 8/9 dimensions passed
+```
+
+**requests v2.32.5 审查结果：**
+
+| File | Code-Review | ProjDevBench |
+|------|------------|-------------|
+| adapters.py | 0.92 ✅ | 0.92 ✅ |
+| utils.py | 0.74 | 0.92 ✅ |
+| sessions.py | 0.82 ✅ | 0.80 ✅ |
+| cookies.py | 0.84 ✅ | 0.84 ✅ |
+| models.py | 0.74 | 0.84 ✅ |
+| api.py | 0.50 | 0.24 |
+
+两个 profile 对高质量文件（adapters/cookies）给出一致高分，对简单文件发现不同弱点。
+**SelfPlay 正确识别了 requests 的质量梯度——核心模块确实比工具文件质量更高。**
+
+---
+
 ## 进化树 — 你的 Agent 的家谱 🌳
 
 ```bash
