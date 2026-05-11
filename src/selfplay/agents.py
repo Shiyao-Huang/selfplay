@@ -36,6 +36,8 @@ class MockTaskAgent:
     genome: AgentGenome
 
     def execute(self, task: str) -> TaskResult:
+        if not isinstance(task, str) or not task.strip():
+            raise ValueError(f"task must be a non-empty string, got: {type(task).__name__}")
         output = f"{self.genome.instructions}\n任务：{task}\n结论：先完成最小闭环，再接真实 SDK。"
         score = score_output(output)
         return TaskResult(task=task, output=output, score=score)
@@ -48,6 +50,8 @@ class MockOptimizerAgent:
     min_delta: float = 0.05
 
     def improve(self, genome: AgentGenome, result: TaskResult) -> tuple[str, AgentGenome]:
+        if genome is None:
+            raise TypeError("genome must not be None")
         additions: list[str] = []
         if "证据" not in result.output:
             additions.append("每次输出必须包含证据或可复现实验路径。")

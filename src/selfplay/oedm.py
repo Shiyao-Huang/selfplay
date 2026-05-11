@@ -34,11 +34,16 @@ class OedmLoop:
         self.optimizer = MockOptimizerAgent()
 
     def seed(self) -> AgentGenome:
-        genome = self.store.latest_genome() or AgentGenome()
+        genome = self.store.latest_genome()
+        if genome is None:
+            genome = AgentGenome()
         self.store.save_genome(genome)
         return genome
 
     def run_once(self, task: str, cycle: int = 1) -> OedmCycleResult:
+        # Input validation: guard against empty or non-string task.
+        if not isinstance(task, str) or len(task.strip()) == 0:
+            raise ValueError("task must be a non-empty string")
         old = self.seed()
 
         # Observe: 运行任务并收集输出。
