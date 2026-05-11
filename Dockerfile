@@ -9,7 +9,7 @@ WORKDIR /workspace/selfplay
 COPY pyproject.toml README.md ./
 COPY src ./src
 COPY tests ./tests
-COPY examples/selfplay-code-review.yaml ./selfplay-code-review.yaml
+COPY examples/ ./examples/
 
 RUN python -m pip install --upgrade pip \
     && python -m pip install -e ".[sdk,evaluation]" \
