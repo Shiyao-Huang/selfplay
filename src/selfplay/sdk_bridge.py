@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -203,7 +204,9 @@ class AnthropicRuntimeAdapter:
         yield RuntimeEvent("turn.started", goal, self.name, {"model": self.model})
 
         try:
-            client = anthropic.AsyncAnthropic()
+            api_key = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")
+            base_url = os.environ.get("ANTHROPIC_BASE_URL") or None
+            client = anthropic.AsyncAnthropic(api_key=api_key, base_url=base_url)
             response = await client.messages.create(
                 model=self.model,
                 max_tokens=self.max_tokens,
