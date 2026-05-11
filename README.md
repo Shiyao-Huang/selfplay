@@ -147,6 +147,39 @@ SelfPlay code review: evaluator.py
 
 ---
 
+## 评估标准的 Strange Loop 🔄
+
+同一份代码，两个评估视角，截然不同的结论：
+
+```
+$ selfplay --config selfplay-code-review.yaml check src/models.py
+  Score: 1.00  [████████████████████] 1.00
+  ✅ 有类型标注  ✅ 有 docstring  ✅ 有错误处理  ✅ 有代码注释
+
+$ selfplay --config selfplay-projdevbench.yaml check src/models.py
+  Score: 0.62  [████████████░░░░░░░] 0.62
+  ✅ 有错误传播  ✅ 有类型防护
+  ❌ 输入验证缺失  ❌ 资源管理缺失  ❌ 边界条件未检查
+```
+
+**code-review 说"完美"，projdevbench 发现了 3 个盲区。**
+
+这就是 Strange Loop —— 评估标准本身需要进化。
+单一视角的"完美"是假象。SelfPlay 让你看到"你不知道你不知道什么"。
+
+```bash
+# 代码风格视角（10 维度）
+selfplay --config selfplay-code-review.yaml check src/your_code.py
+
+# 正确性保证视角（9 维度，基于 ProjDevBench ICML 2026 研究）
+selfplay --config selfplay-projdevbench.yaml check src/your_code.py
+
+# 或创建你自己的评估标准
+selfplay init
+```
+
+---
+
 ## 进化树 — 你的 Agent 的家谱 🌳
 
 ```bash
