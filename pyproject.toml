@@ -38,10 +38,10 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [project.urls]
-Homepage = "https://github.com/shiyao-huang/selfplay"
-Documentation = "https://github.com/shiyao-huang/selfplay#readme"
-Repository = "https://github.com/shiyao-huang/selfplay"
-Issues = "https://github.com/shiyao-huang/selfplay/issues"
+Homepage = "https://github.com/Shiyao-Huang/selfplay"
+Documentation = "https://github.com/Shiyao-Huang/selfplay#readme"
+Repository = "https://github.com/Shiyao-Huang/selfplay"
+Issues = "https://github.com/Shiyao-Huang/selfplay/issues"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

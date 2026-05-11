@@ -223,7 +223,7 @@ The open questions are the most interesting part:
 
 If these questions interest you, we'd love your help. The genome design, evaluation criteria, and runtime adapters are all areas where community input could make SelfPlay significantly better.
 
-**GitHub**: [SelfPlay Repository](https://github.com/shiyao-huang/selfplay)
+**GitHub**: [SelfPlay Repository](https://github.com/Shiyao-Huang/selfplay)
 **Docs**: [selfplay.dev](https://selfplay.dev)
 
 ---

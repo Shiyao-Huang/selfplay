@@ -73,7 +73,7 @@
 - SelfPlay：Agent 自己重写自己的指令，越用越好
 - 开源免费，终端原生，支持多种 LLM（Claude/Codex/DeepSeek 即将支持）
 
-GitHub: https://github.com/shiyao-huang/selfplay
+GitHub: https://github.com/Shiyao-Huang/selfplay
 Show HN 帖子: [链接]
 
 想听听大家的想法：
@@ -318,7 +318,7 @@ selfplay tree
 2. 你会用它做什么场景？
 3. 你最想让 AI Agent 学会什么？
 
-GitHub: https://github.com/shiyao-huang/selfplay
+GitHub: https://github.com/Shiyao-Huang/selfplay
 ```
 
 ---

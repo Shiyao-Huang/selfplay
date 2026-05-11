@@ -101,7 +101,7 @@ The project is at an early but functional stage. We'd love feedback on:
 2. Evaluation criteria for self-improvement
 3. Which runtime adapter to prioritize next
 
-GitHub: https://github.com/shiyao-huang/selfplay
+GitHub: https://github.com/Shiyao-Huang/selfplay
 Docs: [link]
 ```
 
