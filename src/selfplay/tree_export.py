@@ -1,11 +1,20 @@
 """Evolution tree export: SVG, Markdown, and Mermaid diagram output."""
 from __future__ import annotations
 
+import logging
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 def _build_tree_data(images: list[Any]) -> list[dict[str, Any]]:
-    """Convert AgentImage list to tree node dicts."""
+    """Convert AgentImage list to tree node dicts.
+
+    :param images: list of AgentImage objects
+    :return: list of node dicts with id, version, runtime, parent_id, score, prompt_preview
+    """
+    if not isinstance(images, list):
+        raise TypeError(f"images must be list, got {type(images).__name__}")
     nodes: dict[str, dict[str, Any]] = {}
     for img in images:
         nodes[img.id] = {
@@ -20,7 +29,11 @@ def _build_tree_data(images: list[Any]) -> list[dict[str, Any]]:
 
 
 def export_mermaid(images: list[Any]) -> str:
-    """Export evolution tree as Mermaid flowchart (renders on GitHub)."""
+    """Export evolution tree as Mermaid flowchart (renders on GitHub).
+
+    :param images: list of AgentImage objects
+    :return: Mermaid flowchart string
+    """
     nodes = _build_tree_data(images)
     lines = ["flowchart TD"]
     id_map: dict[str, str] = {}
@@ -35,7 +48,7 @@ def export_mermaid(images: list[Any]) -> str:
         if n["parent_id"] and n["parent_id"] in id_map:
             lines.append(f"    {id_map[n['parent_id']]} --> {id_map[n['id']]}")
 
-    # Styling
+    # Style root vs evolved nodes
     lines.append("")
     lines.append("    classDef root fill:#e1f5fe,stroke:#0288d1")
     lines.append("    classDef evolved fill:#e8f5e9,stroke:#388e3c")
@@ -98,9 +111,13 @@ def export_markdown(images: list[Any]) -> str:
 
 
 def export_svg(images: list[Any]) -> str:
-    """Export evolution tree as a self-contained SVG."""
+    """Export evolution tree as a self-contained SVG.
+
+    :param images: list of AgentImage objects
+    :return: SVG string
+    """
     nodes = _build_tree_data(images)
-    # Build parent→child adjacency
+    # Build parent→child adjacency for tree layout
     id_set = {n["id"] for n in nodes}
     children: dict[str, list[dict]] = {}
     roots: list[dict] = []
@@ -111,6 +128,9 @@ def export_svg(images: list[Any]) -> str:
         else:
             roots.append(n)
 
+    if not nodes:
+        logger.debug("export_svg: no nodes to render")
+        return '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="50"><text x="10" y="30">No data</text></svg>'
     # Layout: BFS for x positions, depth for y
     box_w, box_h, gap_x, gap_y = 220, 50, 30, 25
     positions: dict[str, tuple[int, int]] = {}
