@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 from pathlib import Path
 
 from .models import AgentGenome, AgentImage, EvaluationRecord, RuntimeName, utc_now
+
+logger = logging.getLogger(__name__)
 
 SCHEMA = """
 create table if not exists genomes (
@@ -45,14 +48,24 @@ create table if not exists runtime_events (
 
 
 class GenomeStore:
+    """SQLite-backed persistence for genomes, agent images, and evaluations."""
+
     def __init__(self, path: str | Path = "data/selfplay.sqlite") -> None:
+        """Initialize store and ensure schema is up to date.
+
+        :param path: SQLite database file path
+        """
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(self.path)
-        self.conn.executescript(SCHEMA)
-        self._ensure_features_column()
-        self._ensure_profile_columns()
-        self.conn.commit()
+        try:
+            self.conn = sqlite3.connect(self.path)
+            self.conn.executescript(SCHEMA)
+            self._ensure_features_column()
+            self._ensure_profile_columns()
+            self.conn.commit()
+        except sqlite3.Error as exc:
+            logger.error("GenomeStore init failed: %s", exc)
+            raise
 
     def _ensure_features_column(self) -> None:
         """Idempotent ALTER TABLE for features_json column."""
@@ -60,6 +73,7 @@ class GenomeStore:
         columns = {row[1] for row in cursor.fetchall()}
         if "features_json" not in columns:
             self.conn.execute("ALTER TABLE evaluations ADD COLUMN features_json TEXT DEFAULT '[]'")
+            logger.debug("Added features_json column to evaluations")
 
     def _ensure_profile_columns(self) -> None:
         """Idempotent ALTER TABLE for profile_id and profile_version columns."""
@@ -71,6 +85,10 @@ class GenomeStore:
             self.conn.execute("ALTER TABLE evaluations ADD COLUMN profile_version INTEGER")
 
     def save_genome(self, genome: AgentGenome) -> None:
+        """Persist a genome record (insert or replace).
+
+        :param genome: the AgentGenome to save
+        """
         self.conn.execute(
             "insert or replace into genomes values (?, ?, ?, ?, ?)",
             (genome.id, genome.version, genome.instructions, genome.parent_id, genome.created_at),
@@ -78,7 +96,12 @@ class GenomeStore:
         self.conn.commit()
 
     def save_agent_image(self, image: AgentImage) -> None:
+        """Persist an AgentImage and its backing genome.
+
+        :param image: the AgentImage to save
+        """
         genome_json = json.dumps(image.to_genome(), ensure_ascii=False, sort_keys=True)
+        # Also persist as legacy genome for backward compatibility
         self.conn.execute(
             """insert or replace into agent_images
             (id, version, runtime_adapter, genome_json, parent_id, created_at)
@@ -94,6 +117,11 @@ class GenomeStore:
         ))
 
     def save_evaluation(self, record: EvaluationRecord, features: list[dict] | None = None) -> None:
+        """Persist an evaluation record with optional feature breakdowns.
+
+        :param record: the evaluation record to save
+        :param features: per-dimension feature breakdowns as dicts
+        """
         features_json = json.dumps(features or [], ensure_ascii=False)
         self.conn.execute(
             """insert into evaluations
@@ -116,6 +144,14 @@ class GenomeStore:
         self.conn.commit()
 
     def save_runtime_event(self, cycle: int, kind: str, runtime: str, content: str, metadata: dict) -> None:
+        """Record a runtime event for observability.
+
+        :param cycle: evolution cycle number
+        :param kind: event type (thread.started, message, error, etc.)
+        :param runtime: adapter name (mock, claude, codex)
+        :param content: event text content
+        :param metadata: structured event metadata
+        """
         self.conn.execute(
             """insert into runtime_events
             (cycle, kind, runtime, content, metadata_json, created_at)
@@ -133,6 +169,13 @@ class GenomeStore:
         return AgentGenome(id=row[0], version=row[1], instructions=row[2], parent_id=row[3], created_at=row[4])
 
     def latest_agent_image(self, runtime_adapter: RuntimeName | None = None) -> AgentImage | None:
+        """Retrieve the latest AgentImage, optionally filtered by runtime.
+
+        :param runtime_adapter: filter by runtime adapter name
+        :return: latest AgentImage or None
+        """
+        if runtime_adapter and not isinstance(runtime_adapter, str):
+            raise TypeError(f"runtime_adapter must be str, got {type(runtime_adapter).__name__}")
         if runtime_adapter:
             row = self.conn.execute(
                 """select genome_json from agent_images
@@ -144,11 +187,11 @@ class GenomeStore:
                 "select genome_json from agent_images order by version desc limit 1"
             ).fetchone()
         if row:
-            return AgentImage.from_genome(json.loads(row[0]))
-        if runtime_adapter:
-            return None
-        legacy = self.latest_genome()
-        return legacy.to_agent_image("mock") if legacy else None
+            try:
+                return AgentImage.from_genome(json.loads(row[0]))
+            except (json.JSONDecodeError, ValueError) as exc:
+                logger.warning("Failed to deserialize agent image: %s", exc)
+                return None
 
     def recent_agent_images(self, limit: int = 10) -> list[AgentImage]:
         rows = self.conn.execute(
