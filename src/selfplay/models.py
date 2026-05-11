@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Literal
 from uuid import uuid4
+
+logger = logging.getLogger(__name__)
 
 Stage = Literal["observe", "evaluate", "decide", "modify"]
 RuntimeName = Literal["mock", "claude", "codex"]
@@ -19,10 +22,16 @@ def new_id(prefix: str) -> str:
 
 
 def compress_prompt(prompt: str, max_length: int = DEFAULT_MAX_PROMPT_LENGTH) -> str:
-    """Compress prompt text with de-duplication before applying a hard safety limit."""
+    """Compress prompt text with de-duplication before applying a hard safety limit.
+
+    :param prompt: raw prompt text to compress
+    :param max_length: hard character limit after compression
+    :return: compressed prompt string within max_length
+    """
     text = " ".join(line.strip() for line in prompt.splitlines() if line.strip())
     if len(text) <= max_length:
         return text
+    # De-duplicate sentences to reduce repetition
     sentences = [part.strip() for part in text.replace("。", "。\n").splitlines() if part.strip()]
     unique: list[str] = []
     for sentence in sentences:
@@ -31,7 +40,9 @@ def compress_prompt(prompt: str, max_length: int = DEFAULT_MAX_PROMPT_LENGTH) ->
     compressed = " ".join(unique)
     if len(compressed) <= max_length:
         return compressed
+    # Truncate middle with ellipsis when still too long
     keep = max(80, (max_length - 12) // 2)
+    logger.debug("compress_prompt truncated: %d → %d chars", len(compressed), max_length)
     return f"{compressed[:keep].rstrip()} … {compressed[-keep:].lstrip()}"
 
 
@@ -118,7 +129,16 @@ class AgentImage:
 
     @classmethod
     def from_genome(cls, genome: dict[str, Any]) -> "AgentImage":
-        return cls(
+        """Reconstruct an AgentImage from a serialized genome dict.
+
+        :param genome: dict produced by to_genome()
+        :return: reconstructed AgentImage instance
+        :raises TypeError: if genome is not a dict
+        """
+        if not isinstance(genome, dict):
+            raise TypeError(f"genome must be dict, got {type(genome).__name__}")
+        try:
+            return cls(
             id=genome.get("id", new_id("image")),
             version=int(genome.get("version", 1)),
             prompt=genome.get("prompt") or genome.get("instructions") or "回答要具体，先给短结论，再给证据。",
@@ -130,6 +150,9 @@ class AgentImage:
             parent_id=genome.get("parent_id"),
             created_at=genome.get("created_at", utc_now()),
         )
+        except (KeyError, ValueError) as exc:
+            logger.warning("from_genome fallback for invalid data: %s", exc)
+            return cls()
 
     def mutated_prompt(
         self,
@@ -138,6 +161,15 @@ class AgentImage:
         rationale: str,
         max_length: int = DEFAULT_MAX_PROMPT_LENGTH,
     ) -> "AgentImage":
+        """Create a child AgentImage with an evolved prompt.
+
+        :param new_prompt: the proposed new prompt text
+        :param score: evaluation score that triggered this mutation
+        :param rationale: human-readable reason for the mutation
+        :param max_length: maximum prompt length after compression
+        :return: new AgentImage with incremented version
+        """
+        # Clone self, then apply mutation
         child = AgentImage.from_genome(self.to_genome())
         child.id = new_id("image")
         child.version = self.version + 1
